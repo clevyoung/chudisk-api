@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="WebDiskDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="FileManage">
+          <Key>
+            <PropertyRef Name="FileId" />
+          </Key>
+          <Property Name="FileId" Type="char" MaxLength="10" Nullable="false" />
+          <Property Name="ParentId" Type="char" MaxLength="10" />
+          <Property Name="Path" Type="nvarchar" MaxLength="255" />
+          <Property Name="CreatedDate" Type="datetime" />
+          <Property Name="LastModified" Type="datetime" />
+          <Property Name="LastAccessed" Type="datetime" />
+          <Property Name="FileName" Type="nvarchar" MaxLength="100" />
+          <Property Name="FileExtension" Type="varchar" MaxLength="20" />
+          <Property Name="FileSize" Type="int" />
+          <Property Name="Starred" Type="bit" />
+          <Property Name="Trashed" Type="bit" />
+          <Property Name="OwnerId" Type="char" MaxLength="6" />
+        </EntityType>
+        <EntityType Name="FolderManage">
+          <Key>
+            <PropertyRef Name="FolderId" />
+          </Key>
+          <Property Name="FolderId" Type="char" MaxLength="8" Nullable="false" />
+          <Property Name="ParentId" Type="char" MaxLength="8" />
+          <Property Name="Path" Type="nvarchar" MaxLength="255" />
+          <Property Name="CreatedDate" Type="datetime" />
+          <Property Name="LastModified" Type="datetime" />
+          <Property Name="LastAccessed" Type="datetime" />
+          <Property Name="FolderName" Type="nvarchar" MaxLength="100" />
+          <Property Name="Starred" Type="bit" />
+          <Property Name="Trashed" Type="bit" />
+          <Property Name="OwnerId" Type="char" MaxLength="6" />
+        </EntityType>
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="char" MaxLength="6" Nullable="false" />
+          <Property Name="Email" Type="varchar" MaxLength="255" />
+          <Property Name="Password" Type="varchar" MaxLength="100" />
+          <Property Name="UserRole" Type="int" />
+          <Property Name="CreatedDate" Type="datetime" />
+        </EntityType>
+        <EntityContainer Name="WebDiskDBModelStoreContainer">
+          <EntitySet Name="FileManage" EntityType="Self.FileManage" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FolderManage" EntityType="Self.FolderManage" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="WebDiskDBModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="FileManage">
+          <Key>
+            <PropertyRef Name="FileId" />
+          </Key>
+          <Property Name="FileId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" Nullable="false" />
+          <Property Name="ParentId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" />
+          <Property Name="Path" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+          <Property Name="LastModified" Type="DateTime" Precision="3" />
+          <Property Name="LastAccessed" Type="DateTime" Precision="3" />
+          <Property Name="FileName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="FileExtension" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="FileSize" Type="Int32" />
+          <Property Name="Starred" Type="Boolean" />
+          <Property Name="Trashed" Type="Boolean" />
+          <Property Name="OwnerId" Type="String" MaxLength="6" FixedLength="true" Unicode="false" />
+        </EntityType>
+        <EntityType Name="FolderManage">
+          <Key>
+            <PropertyRef Name="FolderId" />
+          </Key>
+          <Property Name="FolderId" Type="String" MaxLength="8" FixedLength="true" Unicode="false" Nullable="false" />
+          <Property Name="ParentId" Type="String" MaxLength="8" FixedLength="true" Unicode="false" />
+          <Property Name="Path" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+          <Property Name="LastModified" Type="DateTime" Precision="3" />
+          <Property Name="LastAccessed" Type="DateTime" Precision="3" />
+          <Property Name="FolderName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Starred" Type="Boolean" />
+          <Property Name="Trashed" Type="Boolean" />
+          <Property Name="OwnerId" Type="String" MaxLength="6" FixedLength="true" Unicode="false" />
+        </EntityType>
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="String" MaxLength="6" FixedLength="true" Unicode="false" Nullable="false" />
+          <Property Name="Email" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="Password" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="UserRole" Type="Int32" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityContainer Name="WebDiskDBEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="FileManage" EntityType="Self.FileManage" />
+          <EntitySet Name="FolderManage" EntityType="Self.FolderManage" />
+          <EntitySet Name="Users" EntityType="Self.Users" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="WebDiskDBModelStoreContainer" CdmEntityContainer="WebDiskDBEntities">
+          <EntitySetMapping Name="FileManage">
+            <EntityTypeMapping TypeName="WebDiskDBModel.FileManage">
+              <MappingFragment StoreEntitySet="FileManage">
+                <ScalarProperty Name="FileId" ColumnName="FileId" />
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="Path" ColumnName="Path" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
+                <ScalarProperty Name="LastAccessed" ColumnName="LastAccessed" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="FileExtension" ColumnName="FileExtension" />
+                <ScalarProperty Name="FileSize" ColumnName="FileSize" />
+                <ScalarProperty Name="Starred" ColumnName="Starred" />
+                <ScalarProperty Name="Trashed" ColumnName="Trashed" />
+                <ScalarProperty Name="OwnerId" ColumnName="OwnerId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FolderManage">
+            <EntityTypeMapping TypeName="WebDiskDBModel.FolderManage">
+              <MappingFragment StoreEntitySet="FolderManage">
+                <ScalarProperty Name="FolderId" ColumnName="FolderId" />
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="Path" ColumnName="Path" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
+                <ScalarProperty Name="LastAccessed" ColumnName="LastAccessed" />
+                <ScalarProperty Name="FolderName" ColumnName="FolderName" />
+                <ScalarProperty Name="Starred" ColumnName="Starred" />
+                <ScalarProperty Name="Trashed" ColumnName="Trashed" />
+                <ScalarProperty Name="OwnerId" ColumnName="OwnerId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Users">
+            <EntityTypeMapping TypeName="WebDiskDBModel.Users">
+              <MappingFragment StoreEntitySet="Users">
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="Password" ColumnName="Password" />
+                <ScalarProperty Name="UserRole" ColumnName="UserRole" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="없음" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
