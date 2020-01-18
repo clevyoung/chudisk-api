@@ -4,14 +4,15 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="WebDiskDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="WebDiskDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="FileManage">
           <Key>
             <PropertyRef Name="FileId" />
           </Key>
           <Property Name="FileId" Type="char" MaxLength="10" Nullable="false" />
-          <Property Name="ParentId" Type="char" MaxLength="10" />
-          <Property Name="Path" Type="nvarchar" MaxLength="255" />
+          <Property Name="FolderId" Type="char" MaxLength="10" />
+          <Property Name="ServerPath" Type="nvarchar" MaxLength="255" />
+          <Property Name="RealPath" Type="nvarchar" MaxLength="255" />
           <Property Name="CreatedDate" Type="datetime" />
           <Property Name="LastModified" Type="datetime" />
           <Property Name="LastAccessed" Type="datetime" />
@@ -26,15 +27,16 @@
           <Key>
             <PropertyRef Name="FolderId" />
           </Key>
-          <Property Name="FolderId" Type="char" MaxLength="8" Nullable="false" />
-          <Property Name="ParentId" Type="char" MaxLength="8" />
-          <Property Name="Path" Type="nvarchar" MaxLength="255" />
+          <Property Name="FolderId" Type="char" MaxLength="10" Nullable="false" />
+          <Property Name="ParentId" Type="char" MaxLength="10" />
+          <Property Name="ServerPath" Type="nvarchar" MaxLength="255" />
+          <Property Name="RealPath" Type="nvarchar" MaxLength="255" />
           <Property Name="CreatedDate" Type="datetime" />
           <Property Name="LastModified" Type="datetime" />
           <Property Name="LastAccessed" Type="datetime" />
           <Property Name="FolderName" Type="nvarchar" MaxLength="100" />
-          <Property Name="Starred" Type="bit" />
-          <Property Name="Trashed" Type="bit" />
+          <Property Name="Starred" Type="bit" Nullable="false" />
+          <Property Name="Trashed" Type="bit" Nullable="false" />
           <Property Name="OwnerId" Type="char" MaxLength="6" />
         </EntityType>
         <EntityType Name="Users">
@@ -52,18 +54,23 @@
           <EntitySet Name="FolderManage" EntityType="Self.FolderManage" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="WebDiskDBModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="WebDiskDBEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="FileManage" EntityType="WebDiskDBModel.FileManage" />
+          <EntitySet Name="FolderManage" EntityType="WebDiskDBModel.FolderManage" />
+          <EntitySet Name="Users" EntityType="WebDiskDBModel.Users" />
+        </EntityContainer>
         <EntityType Name="FileManage">
           <Key>
             <PropertyRef Name="FileId" />
           </Key>
-          <Property Name="FileId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" Nullable="false" />
-          <Property Name="ParentId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" />
-          <Property Name="Path" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="FileId" Type="String" Nullable="false" MaxLength="10" FixedLength="true" Unicode="false" />
+          <Property Name="FolderId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" />
+          <Property Name="ServerPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="RealPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <Property Name="CreatedDate" Type="DateTime" Precision="3" />
           <Property Name="LastModified" Type="DateTime" Precision="3" />
           <Property Name="LastAccessed" Type="DateTime" Precision="3" />
@@ -78,33 +85,29 @@
           <Key>
             <PropertyRef Name="FolderId" />
           </Key>
-          <Property Name="FolderId" Type="String" MaxLength="8" FixedLength="true" Unicode="false" Nullable="false" />
-          <Property Name="ParentId" Type="String" MaxLength="8" FixedLength="true" Unicode="false" />
-          <Property Name="Path" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="FolderId" Type="String" Nullable="false" MaxLength="10" FixedLength="true" Unicode="false" />
+          <Property Name="ParentId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" />
+          <Property Name="ServerPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="RealPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <Property Name="CreatedDate" Type="DateTime" Precision="3" />
           <Property Name="LastModified" Type="DateTime" Precision="3" />
           <Property Name="LastAccessed" Type="DateTime" Precision="3" />
           <Property Name="FolderName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Starred" Type="Boolean" />
-          <Property Name="Trashed" Type="Boolean" />
+          <Property Name="Starred" Type="Boolean" Nullable="false" />
+          <Property Name="Trashed" Type="Boolean" Nullable="false" />
           <Property Name="OwnerId" Type="String" MaxLength="6" FixedLength="true" Unicode="false" />
         </EntityType>
         <EntityType Name="Users">
           <Key>
             <PropertyRef Name="UserId" />
           </Key>
-          <Property Name="UserId" Type="String" MaxLength="6" FixedLength="true" Unicode="false" Nullable="false" />
+          <Property Name="UserId" Type="String" Nullable="false" MaxLength="6" FixedLength="true" Unicode="false" />
           <Property Name="Email" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <Property Name="Password" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="UserRole" Type="Int32" />
           <Property Name="CreatedDate" Type="DateTime" Precision="3" />
         </EntityType>
-        <EntityContainer Name="WebDiskDBEntities" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="FileManage" EntityType="Self.FileManage" />
-          <EntitySet Name="FolderManage" EntityType="Self.FolderManage" />
-          <EntitySet Name="Users" EntityType="Self.Users" />
-        </EntityContainer>
-      </Schema>
+        </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
@@ -113,45 +116,47 @@
           <EntitySetMapping Name="FileManage">
             <EntityTypeMapping TypeName="WebDiskDBModel.FileManage">
               <MappingFragment StoreEntitySet="FileManage">
-                <ScalarProperty Name="FileId" ColumnName="FileId" />
-                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-                <ScalarProperty Name="Path" ColumnName="Path" />
-                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
-                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
-                <ScalarProperty Name="LastAccessed" ColumnName="LastAccessed" />
-                <ScalarProperty Name="FileName" ColumnName="FileName" />
-                <ScalarProperty Name="FileExtension" ColumnName="FileExtension" />
-                <ScalarProperty Name="FileSize" ColumnName="FileSize" />
-                <ScalarProperty Name="Starred" ColumnName="Starred" />
-                <ScalarProperty Name="Trashed" ColumnName="Trashed" />
                 <ScalarProperty Name="OwnerId" ColumnName="OwnerId" />
+                <ScalarProperty Name="Trashed" ColumnName="Trashed" />
+                <ScalarProperty Name="Starred" ColumnName="Starred" />
+                <ScalarProperty Name="FileSize" ColumnName="FileSize" />
+                <ScalarProperty Name="FileExtension" ColumnName="FileExtension" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="LastAccessed" ColumnName="LastAccessed" />
+                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="RealPath" ColumnName="RealPath" />
+                <ScalarProperty Name="ServerPath" ColumnName="ServerPath" />
+                <ScalarProperty Name="FolderId" ColumnName="FolderId" />
+                <ScalarProperty Name="FileId" ColumnName="FileId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
           <EntitySetMapping Name="FolderManage">
             <EntityTypeMapping TypeName="WebDiskDBModel.FolderManage">
               <MappingFragment StoreEntitySet="FolderManage">
-                <ScalarProperty Name="FolderId" ColumnName="FolderId" />
-                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-                <ScalarProperty Name="Path" ColumnName="Path" />
-                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
-                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
-                <ScalarProperty Name="LastAccessed" ColumnName="LastAccessed" />
-                <ScalarProperty Name="FolderName" ColumnName="FolderName" />
-                <ScalarProperty Name="Starred" ColumnName="Starred" />
-                <ScalarProperty Name="Trashed" ColumnName="Trashed" />
                 <ScalarProperty Name="OwnerId" ColumnName="OwnerId" />
+                <ScalarProperty Name="Trashed" ColumnName="Trashed" />
+                <ScalarProperty Name="Starred" ColumnName="Starred" />
+                <ScalarProperty Name="FolderName" ColumnName="FolderName" />
+                <ScalarProperty Name="LastAccessed" ColumnName="LastAccessed" />
+                <ScalarProperty Name="LastModified" ColumnName="LastModified" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="RealPath" ColumnName="RealPath" />
+                <ScalarProperty Name="ServerPath" ColumnName="ServerPath" />
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="FolderId" ColumnName="FolderId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
           <EntitySetMapping Name="Users">
             <EntityTypeMapping TypeName="WebDiskDBModel.Users">
               <MappingFragment StoreEntitySet="Users">
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="Password" ColumnName="Password" />
-                <ScalarProperty Name="UserRole" ColumnName="UserRole" />
                 <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="UserRole" ColumnName="UserRole" />
+                <ScalarProperty Name="Password" ColumnName="Password" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

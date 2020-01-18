@@ -16,13 +16,14 @@ namespace WebDiskApplication.EFDB
     {
         public string FolderId { get; set; }
         public string ParentId { get; set; }
-        public string Path { get; set; }
+        public string ServerPath { get; set; }
+        public string RealPath { get; set; }
         public Nullable<System.DateTime> CreatedDate { get; set; }
         public Nullable<System.DateTime> LastModified { get; set; }
         public Nullable<System.DateTime> LastAccessed { get; set; }
         public string FolderName { get; set; }
-        public Nullable<bool> Starred { get; set; }
-        public Nullable<bool> Trashed { get; set; }
+        public bool Starred { get; set; }
+        public bool Trashed { get; set; }
         public string OwnerId { get; set; }
     }
 }
