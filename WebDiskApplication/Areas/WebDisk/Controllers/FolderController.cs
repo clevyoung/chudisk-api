@@ -22,13 +22,18 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             List<FolderManage> folderList = null;
             List<FileManage> fileList = null;
             Disk disk = new Disk();
-
+            Folder folder = new Folder();
             using (var db = new WebDiskDBEntities())
             {
                 folderList = db.FolderManage.Where(x => x.ParentId == folderId && x.Trashed == false).OrderByDescending(o => o.CreatedDate).ToList();
                 fileList = db.FileManage.Where(x => x.FolderId == folderId && x.Trashed == false).OrderByDescending(o => o.CreatedDate).ToList();
-                disk.Folders = folderList;
-                disk.Files = fileList;
+                folder.Folders = folderList;
+                folder.Files = fileList;
+
+                disk.Folder = folder;
+                disk.FolderId = folderId;
+                disk.Folder.Folders = folderList;
+                disk.Folder.Files = fileList;
             }
 
             return Ok(disk);
@@ -37,15 +42,15 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         //폴더 생성
         [Route("api/disk/folder")]
         [HttpPost]
-        public IHttpActionResult CreateFolder()
+        public IHttpActionResult CreateFolder(FolderManage folder)
         {
             FolderManage newFolder = new FolderManage();
             using (var db = new WebDiskDBEntities())
             {
                 HttpContext context = HttpContext.Current;
                 newFolder.FolderId = GenerateUniqueID.FolderID();
-                string folderName = context.Request.Form["folderName"];
-                string parentId = context.Request.Form["parentId"];
+                string folderName = folder.FolderName;
+                string parentId = folder.ParentId;
                 newFolder.ParentId = parentId;
                 var parentFolder = db.FolderManage.Where(x => x.FolderId == parentId).SingleOrDefault();
                 newFolder.ServerPath = @"C:\WebDisk";
@@ -404,19 +409,20 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         /// <returns></returns>
         [Route("api/disk/folder/starred/{folderId}")]
         [HttpPut]
-        public IHttpActionResult MoveFolderToStarred(string folderId)
+        public IHttpActionResult MoveFolderToStarred(string folderId, [FromBody] bool starred)
         {
             FolderManage starredFolder = null;
             using (var db = new WebDiskDBEntities())
             {
                 string rootId = db.FolderManage.Where(x => x.ParentId == null).SingleOrDefault().FolderId;
+                //string folderId = folder.FolderId;
 
                 #region 루트 폴더는 상태 처리 예외
                 if (folderId != rootId)
                 {
                     starredFolder = db.FolderManage.Where(x => x.FolderId == folderId).SingleOrDefault();
 
-                    starredFolder.Starred = true;
+                    starredFolder.Starred = starred;
                     db.SaveChanges();
                 }
                 #endregion
@@ -424,43 +430,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             return Ok(starredFolder);
         }
 
-
-        /// <summary>
-        /// 폴더 중요처리 해제하기
-        /// </summary>
-        /// <param name="folderId">해당 폴더 아이디</param>
-        /// <returns></returns>
-        [Route("api/disk/folder/cancelstarred/{folderId}")]
-        [HttpPut]
-        public IHttpActionResult MoveStarredFolderToBack(string folderId)
-        {
-            FolderManage unStarredFolder = null;
-            using (var db = new WebDiskDBEntities())
-            {
-                string rootId = db.FolderManage.Where(x => x.ParentId == null).SingleOrDefault().FolderId;
-
-                #region 루트 폴더는 상태 처리 예외
-                if (folderId != rootId)
-                {
-                    unStarredFolder = db.FolderManage.Where(x => x.FolderId == folderId).SingleOrDefault();
-
-                    unStarredFolder.Starred = false;
-                    db.SaveChanges();
-                }
-                #endregion
-
-            }
-
-            return Ok(unStarredFolder);
-        }
-
-
         /// <summary>
         /// 휴지통 상태 처리
         /// </summary>
         /// <param name="folderId"></param>
         /// <returns></returns>
-        [Route("api/disk/folder/trash/{folderId}")]
+        [Route("api/disk/folder/trashed/{folderId}")]
         [HttpPut]
         public IHttpActionResult MoveFolderToTrash(string folderId)
         {
