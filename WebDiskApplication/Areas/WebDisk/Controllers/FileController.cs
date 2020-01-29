@@ -133,7 +133,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         /// </summary>
         /// <param name="fileId">삭제하려는 파일 아이디</param>
         /// <returns></returns>
-        [Route("api/disk/file/trash/{fileId}")]
+        [Route("api/disk/file/{fileId}")]
         [HttpDelete]
         public IHttpActionResult DeleteFileForever(string fileId)
         {
