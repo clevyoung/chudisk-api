@@ -8,9 +8,14 @@ namespace WebDiskApplication.Areas.WebDisk.Models
 {
     public class Disk
     {
+        public string FolderId { get; set; }
+        public Folder Folder { get; set;}
+    }
+
+    public class Folder
+    {
         public List<FolderManage> Folders { get; set; }
         public List<FileManage> Files { get; set; }
-
     }
 
     public class FolderTree
