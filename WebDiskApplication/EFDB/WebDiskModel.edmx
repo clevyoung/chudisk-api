@@ -11,6 +11,7 @@
           </Key>
           <Property Name="FileId" Type="char" MaxLength="10" Nullable="false" />
           <Property Name="FolderId" Type="char" MaxLength="10" />
+          <Property Name="Type" Type="varchar" MaxLength="20" />
           <Property Name="ServerPath" Type="nvarchar" MaxLength="255" />
           <Property Name="RealPath" Type="nvarchar" MaxLength="255" />
           <Property Name="CreatedDate" Type="datetime" />
@@ -22,12 +23,14 @@
           <Property Name="Starred" Type="bit" />
           <Property Name="Trashed" Type="bit" />
           <Property Name="OwnerId" Type="char" MaxLength="6" />
+          <Property Name="MimeType" Type="tinyint" />
         </EntityType>
         <EntityType Name="FolderManage">
           <Key>
             <PropertyRef Name="FolderId" />
           </Key>
           <Property Name="FolderId" Type="char" MaxLength="10" Nullable="false" />
+          <Property Name="Type" Type="varchar" MaxLength="20" />
           <Property Name="ParentId" Type="char" MaxLength="10" />
           <Property Name="ServerPath" Type="nvarchar" MaxLength="255" />
           <Property Name="RealPath" Type="nvarchar" MaxLength="255" />
@@ -69,6 +72,7 @@
           </Key>
           <Property Name="FileId" Type="String" Nullable="false" MaxLength="10" FixedLength="true" Unicode="false" />
           <Property Name="FolderId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" />
+          <Property Name="Type" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
           <Property Name="ServerPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <Property Name="RealPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <Property Name="CreatedDate" Type="DateTime" Precision="3" />
@@ -80,12 +84,14 @@
           <Property Name="Starred" Type="Boolean" />
           <Property Name="Trashed" Type="Boolean" />
           <Property Name="OwnerId" Type="String" MaxLength="6" FixedLength="true" Unicode="false" />
+          <Property Name="MimeType" Type="Byte" />
         </EntityType>
         <EntityType Name="FolderManage">
           <Key>
             <PropertyRef Name="FolderId" />
           </Key>
           <Property Name="FolderId" Type="String" Nullable="false" MaxLength="10" FixedLength="true" Unicode="false" />
+          <Property Name="Type" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
           <Property Name="ParentId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" />
           <Property Name="ServerPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <Property Name="RealPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
@@ -116,6 +122,7 @@
           <EntitySetMapping Name="FileManage">
             <EntityTypeMapping TypeName="WebDiskDBModel.FileManage">
               <MappingFragment StoreEntitySet="FileManage">
+                <ScalarProperty Name="MimeType" ColumnName="MimeType" />
                 <ScalarProperty Name="OwnerId" ColumnName="OwnerId" />
                 <ScalarProperty Name="Trashed" ColumnName="Trashed" />
                 <ScalarProperty Name="Starred" ColumnName="Starred" />
@@ -127,6 +134,7 @@
                 <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
                 <ScalarProperty Name="RealPath" ColumnName="RealPath" />
                 <ScalarProperty Name="ServerPath" ColumnName="ServerPath" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
                 <ScalarProperty Name="FolderId" ColumnName="FolderId" />
                 <ScalarProperty Name="FileId" ColumnName="FileId" />
               </MappingFragment>
@@ -145,6 +153,7 @@
                 <ScalarProperty Name="RealPath" ColumnName="RealPath" />
                 <ScalarProperty Name="ServerPath" ColumnName="ServerPath" />
                 <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
                 <ScalarProperty Name="FolderId" ColumnName="FolderId" />
               </MappingFragment>
             </EntityTypeMapping>

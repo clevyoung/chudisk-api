@@ -1,4 +1,4 @@
-﻿// 모델 'C:\Users\HY\Dev\Project\Side\1.C#\3.WebAPI\WebDiskApplication\WebDiskApplication\EFDB\WebDiskModel.edmx'에 대해 T4 코드 생성이 사용됩니다. 
+﻿// 모델 'C:\웹디스크\Backend\WebDiskApplication\WebDiskApplication\EFDB\WebDiskModel.edmx'에 대해 T4 코드 생성이 사용됩니다. 
 // 레거시 코드 생성을 사용하려면 '코드 생성 전략' 디자이너 속성의 값을
 // 'Legacy ObjectContext'로 변경하십시오. 이 속성은 모델이 디자이너에서 열릴 때
 // 속성 창에서 사용할 수 있습니다.

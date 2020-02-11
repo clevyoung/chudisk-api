@@ -16,6 +16,7 @@ namespace WebDiskApplication.EFDB
     {
         public string FileId { get; set; }
         public string FolderId { get; set; }
+        public string Type { get; set; }
         public string ServerPath { get; set; }
         public string RealPath { get; set; }
         public Nullable<System.DateTime> CreatedDate { get; set; }
@@ -27,5 +28,6 @@ namespace WebDiskApplication.EFDB
         public Nullable<bool> Starred { get; set; }
         public Nullable<bool> Trashed { get; set; }
         public string OwnerId { get; set; }
+        public Nullable<byte> MimeType { get; set; }
     }
 }

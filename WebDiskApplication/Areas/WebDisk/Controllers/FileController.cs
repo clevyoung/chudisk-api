@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Http;
 using System.Web;
 using WebDiskApplication.EFDB;
+using WebDiskApplication.Areas.WebDisk.Models;
 using WebDiskApplication.Areas.WebDisk.Manage.Variables;
 using System.IO;
 using System.Net.Http;
@@ -31,7 +32,8 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                         HttpPostedFile file = files[i];
                         if (file.ContentLength > 0)//업로드한 파일의 크기를 가져옴 
                         {
-                            string forderId = HttpContext.Current.Request.Form["folderId"]; var parentFolder = db.FolderManage.Where(x => x.FolderId == forderId).SingleOrDefault();
+                            string forderId = HttpContext.Current.Request.Form["folderId"]; 
+                            var parentFolder = db.FolderManage.Where(x => x.FolderId == forderId).SingleOrDefault();
                             string fileName = Path.GetFileName(file.FileName);
                             string serverPath = @"C:\WebDisk";
                             string userId = "kg93s4";
@@ -49,6 +51,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                             newFile.CreatedDate = DateTime.Now;
                             newFile.LastModified = DateTime.Now;
                             newFile.LastAccessed = DateTime.Now;
+                            newFile.Type = "file";
                             newFile.Starred = false;
                             newFile.Trashed = false;
                             newFile.OwnerId = userId;
@@ -58,24 +61,55 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                             newFile.RealPath = realPath;
                             newFile.ServerPath = serverPath;
 
+                            #region 업로드된 파일의 마인 타입을 지정한다.
+                            Manage.Enums.MimeType isMimeType = Manage.Enums.MimeType.Unknown;
+                            switch (newFile.FileExtension.ToLower())
+                            {
+                                case "jpg":
+                                case "png":
+                                case "gif":
+                                case "bmp":
+                                    isMimeType = Manage.Enums.MimeType.Image;
+                                    break;
+                                case "doc":
+                                case "docx":
+                                case "xls":
+                                case "xlsx":
+                                case "pdf":
+                                    isMimeType = Manage.Enums.MimeType.Document;
+                                    break;
+                            }
+                            newFile.MimeType = (byte)isMimeType;
+                            #endregion
+
                             db.FileManage.Add(newFile);
                             db.SaveChanges();
 
 
+                            #region 업로드된 파일의 썸네일 생성하기
+                            string rv_FilePreview = Manage.Utils.CreatePreview.CheckFileMap(Path.Combine(fullPath, fileName), newFile.FileId);
+                            if (rv_FilePreview.Contains("오류"))
+                            {
+                                throw new Exception(rv_FilePreview + " << 오류발생했다!!!!");
+                                //1: 원래 생겨야하는 썸네일 등의 이미지를 '파일 썸네일 생성 오류안내' 이미지로 대체한다.
+                                //2: 여기에 후속 대체 기능을 추가해야 한다.
+                            }
+                            else
+                            {
+                                
+                            }
+                            #endregion
                         }
-
                     }
-
                 }
             }
-
             return Ok();
         }
 
         //파일 삭제하기
         [Route("api/disk/file/trash/{fileId}")]
         [HttpPut]
-        public IHttpActionResult MoveFileToTrash(string fileId)
+        public IHttpActionResult ChangeTrashedStatus(string fileId, [FromBody] bool trashed)
         {
             FileManage file = null;
             using (var db = new WebDiskDBEntities())
@@ -84,7 +118,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
                 if (file != null)
                 {
-                    file.Trashed = true;
+                    file.Trashed = trashed;
                     if (file.Starred == true) file.Starred = false;
                     file.LastModified = DateTime.Now;
                     db.SaveChanges();
@@ -127,7 +161,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             return Ok(file);
         }
 
-        
+
         /// <summary>
         /// 사용자가 휴지통에 있는 파일을 수동으로 영구 삭제한다. 
         /// </summary>
@@ -168,7 +202,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         //파일 이름 변경하기
         [Route("api/disk/file/rename/{fileId}")]
         [HttpPut]
-        public IHttpActionResult RenameFile(string fileId)
+        public IHttpActionResult RenameFile(string fileId, [FromBody]string newFileName)
         {
             FileManage renamedFile = null;
             using (var db = new WebDiskDBEntities())
@@ -178,7 +212,6 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                 //실제 파일 이름도 변경하기
 
                 string folderPath = Path.Combine(renamedFile.ServerPath, renamedFile.OwnerId, renamedFile.RealPath);
-                string newFileName = HttpContext.Current.Request.Form["fileName"];
                 string sourceFilePath = Path.Combine(folderPath, renamedFile.FileName + "." + renamedFile.FileExtension);
                 string targetFilePath = Path.Combine(folderPath, newFileName + "." + renamedFile.FileExtension);
 
@@ -189,10 +222,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                     {
                         File.Move(sourceFilePath, targetFilePath);
                     }
-                    else
-                    {
-                        File.Delete(sourceFilePath);
-                    }
+                    //[질문]다운로드는 변경된 파일명으로 되나 파일은 그대로 남아 있음 소문자 대문자 어떻게하지?
                     renamedFile.FileName = newFileName;
                     renamedFile.LastModified = DateTime.Now;
                     db.SaveChanges();
@@ -219,7 +249,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         //파일 중요처리하기
         [Route("api/disk/file/starred/{fileId}")]
         [HttpPut]
-        public IHttpActionResult MoveFileToStarred(string fileId)
+        public IHttpActionResult MoveFileToStarred(string fileId, [FromBody] bool starred)
         {
             FileManage currentFile = null;
             using (var db = new WebDiskDBEntities())
@@ -228,34 +258,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
                 if (currentFile != null)
                 {
-                    currentFile.Starred = true;
-                    currentFile.LastModified = DateTime.Now;
-                    db.SaveChanges();
-                }
-                else
-                {
-                    return Ok(new { msg = "No corresponding items exist." });
-                }
-
-            }
-
-            return Ok(currentFile);
-        }
-
-        //파일 중요처리 해제하기
-        //파일 중요처리하기
-        [Route("api/disk/file/cancel/starred/{fileId}")]
-        [HttpPut]
-        public IHttpActionResult MoveStarredFileToBack(string fileId)
-        {
-            FileManage currentFile = null;
-            using (var db = new WebDiskDBEntities())
-            {
-                currentFile = db.FileManage.Where(x => x.FileId == fileId).SingleOrDefault();
-
-                if (currentFile != null)
-                {
-                    currentFile.Starred = false;
+                    currentFile.Starred = starred;
                     currentFile.LastModified = DateTime.Now;
                     db.SaveChanges();
                 }
@@ -272,12 +275,11 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         //파일 이동
         [Route("api/disk/file/move/{fileId}")]
         [HttpPut]
-        public IHttpActionResult MoveFileToTargetFolder(string fileId)
+        public IHttpActionResult MoveFileToTargetFolder(string fileId, [FromBody] string targetFolderId)
         {
             FileManage sourceFile = null;
             using (var db = new WebDiskDBEntities())
             {
-                string targetFolderId = HttpContext.Current.Request.Form["folderId"];
                 sourceFile = db.FileManage.Where(x => x.FileId == fileId).SingleOrDefault();
 
                 if (sourceFile != null)
@@ -363,74 +365,122 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         [HttpGet]
         public IHttpActionResult GetRecentFiles()
         {
-            using(var db = new WebDiskDBEntities())
+            RecentFiles recentFiles = new RecentFiles();
+            using (var db = new WebDiskDBEntities())
             {
-                List<FolderManage> allFoldersThisYear = db.FolderManage.Where(x => x.LastModified.Value.Year == DateTime.Now.Year || x.LastAccessed.Value.Year == DateTime.Now.Year).ToList();
-                List<FolderManage> todayFolders = null;
 
-                foreach(var folders in allFoldersThisYear.ToList())
+                List<FileManage> allFilesThisYear = db.FileManage.Where(x => (x.LastModified.Value.Year == DateTime.Now.Year || x.LastAccessed.Value.Year == DateTime.Now.Year) && x.Trashed == false).ToList();
+                List<FileManage> todayFiles = new List<FileManage>();
+                List<FileManage> lastSevenDaysFiles = new List<FileManage>();
+                List<FileManage> lastThirtyDaysFiles = new List<FileManage>();
+                List<FileManage> lastSixMonthFiles = new List<FileManage>();
+                List<FileManage> lastOneYearFiles = new List<FileManage>();
+                List<FileManage> beforeFiles = new List<FileManage>();
+
+                foreach (var file in allFilesThisYear.ToList())
                 {
-                    //오늘
-                    if(folders.LastModified.Value.Day == DateTime.Now.Day)
+                    DateTime Today = DateTime.Now.Date;
+                    DateTime lastModifiedDate = file.LastModified.Value.Date;
+                    DateTime lastAccessedDate = file.LastAccessed.Value.Date;
+                    /*
+                     오늘(년, 월, 일이 같아야한다)
+                     */
+                    if (lastModifiedDate == Today || lastAccessedDate == Today)
                     {
-                        todayFolders.Add(folders);
-                        allFoldersThisYear.Remove(folders);
+                        todayFiles.Add(file);
+                        allFilesThisYear.Remove(file);
+                        continue;
                     }
 
-                    //이번주인 것을 어떻게 판단할지
+                    /*
+                     지난7일
+                     일주일 전 ~ 어제
+                     */
+                    if ((lastModifiedDate < Today && lastModifiedDate >= DateTime.Now.AddDays(-7).Date) ||
+                        (lastAccessedDate < Today && lastAccessedDate >= DateTime.Now.AddDays(-7).Date))
+                    {
+                        lastSevenDaysFiles.Add(file);
+                        allFilesThisYear.Remove(file);
+                        continue;
+                    }
+
+                    /*
+                     최근 30일
+                     30일 전 ~ 어제
+                     */
+                    if ((lastModifiedDate < Today && lastModifiedDate >= DateTime.Now.AddDays(-30).Date) ||
+                        (lastAccessedDate < Today && lastAccessedDate >= DateTime.Now.AddDays(-30).Date))
+                    {
+                        lastThirtyDaysFiles.Add(file);
+                        allFilesThisYear.Remove(file);
+                        continue;
+                    }
 
 
-                    //
+                    //최근 6개월
+                    if ((lastModifiedDate < Today && lastModifiedDate >= DateTime.Now.AddMonths(-6).Date) ||
+                        (lastAccessedDate < Today && lastAccessedDate >= DateTime.Now.AddMonths(-6).Date))
+                    {
+                        lastSixMonthFiles.Add(file);
+                        allFilesThisYear.Remove(file);
+                        continue;
+                    }
+
+                    //최근 1년 
+
+                    if ((lastModifiedDate < Today && lastModifiedDate >= DateTime.Now.AddYears(-1).Date) ||
+                        (lastAccessedDate < Today && lastAccessedDate >= DateTime.Now.AddYears(-1).Date))
+                    {
+                        lastOneYearFiles.Add(file);
+                        allFilesThisYear.Remove(file);
+                        continue;
+                    }
+
+                    // 그 이전 
+
+                    beforeFiles.Add(file);
 
 
-
-
-                    //이번주
-
-                    //이번달
-
-                    //올해
-
-                    //이전 
                 }
+                recentFiles.Today = todayFiles;
+                recentFiles.LastSevenDays = lastSevenDaysFiles;
+                recentFiles.LastThirtyDays = lastThirtyDaysFiles;
+                recentFiles.LastSixMonth = lastSixMonthFiles;
+                recentFiles.LastOneYear = lastOneYearFiles;
+                recentFiles.Before = beforeFiles;
+
             }
 
-
-            
-            return Ok();
+            return Ok(recentFiles);
 
         }
 
-        //중요 파일 가져오기
-        [Route("api/disk/files/starred")]
+
+
+        //파일 마임타입별 파일 가져오기
+        [Route("api/disk/files/mimetype/{mimeType}")]
         [HttpGet]
-        public IHttpActionResult GetStarredFiles()
+        public IHttpActionResult GetRecentFiles(string mimeType)
         {
-            List<FileManage> starredFiles = null;
+            byte RR_MimeType = (byte)Manage.Variables.GenerateUniqueID.MyFilesMimeType(mimeType);
+            List<FileManage> mimetypeFiles = null;
             using (var db = new WebDiskDBEntities())
             {
-                starredFiles = db.FileManage.Where(x => x.Starred == true).ToList();
+                mimetypeFiles = db.FileManage.Where(x => x.MimeType == RR_MimeType).ToList();
+
+                #region 만약 MimeType 을 사용하지않고, 직접 FileExtention 으로 검색 조건을 지정할 시 코드의 예제입니다.
+                if (false)
+                {
+                    IQueryable<FileManage> queryList = null;
+                    queryList = db.FileManage.Where(x => x.FileExtension == "jpg");
+                    queryList = db.FileManage.Where(x => x.FileExtension == "png");
+                    queryList = db.FileManage.Where(x => x.FileExtension == "gif");
+                    queryList = db.FileManage.Where(x => x.FileExtension == "bmp");
+                    mimetypeFiles = queryList.ToList();
+                }
+                #endregion
             }
-            return Ok(starredFiles);
+            return Ok(mimetypeFiles);
         }
-
-        //휴지통 파일 가져오기
-        [Route("api/disk/files/deleted")]
-        [HttpGet]
-        public IHttpActionResult GetDeletedFiles()
-        {
-            List<FileManage> deletedFiles = null;
-
-            using (var db = new WebDiskDBEntities())
-            {
-                deletedFiles = db.FileManage.Where(x => x.Trashed == true).ToList(); //null이랑 count체크 
-            }
-            return Ok(deletedFiles);
-        }
-
-
-
-
-
     }
 }

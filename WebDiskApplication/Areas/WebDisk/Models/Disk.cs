@@ -20,22 +20,36 @@ namespace WebDiskApplication.Areas.WebDisk.Models
 
     public class FolderTree
     {
-        public List<FolderPath> FolderPath { get; set; }
-    }
-  
-    public class FolderPath
-    {
         public string Path { get; set; }
         public string FolderId { get; set; }
         public string FolderName { get; set; }
         public int Subfoldercnt { get; set; }
-        public string OwnerId { get; set; }
+        public List<FolderTree> children { get; set; }
     }
+  
+    //public class FolderPath
+    //{
+    //    public string Path { get; set; }
+    //    public string FolderId { get; set; }
+    //    public string FolderName { get; set; }
+    //    public int Subfoldercnt { get; set; }
+    //    public string OwnerId { get; set; }
+    //}
 
     public class FolderInfo
     {
         public string folderId { get; set; }
         public string folderName { get; set; }
+    }
+
+    public class RecentFiles
+    {
+        public List<FileManage> Today { get; set; }
+        public List<FileManage> LastSevenDays { get; set; }
+        public List<FileManage> LastThirtyDays { get; set; }
+        public List<FileManage> LastSixMonth { get; set; }
+        public List<FileManage> LastOneYear { get; set; }
+        public List<FileManage> Before { get; set; }
     }
 
 

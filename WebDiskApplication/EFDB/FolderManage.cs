@@ -15,6 +15,7 @@ namespace WebDiskApplication.EFDB
     public partial class FolderManage
     {
         public string FolderId { get; set; }
+        public string Type { get; set; }
         public string ParentId { get; set; }
         public string ServerPath { get; set; }
         public string RealPath { get; set; }
