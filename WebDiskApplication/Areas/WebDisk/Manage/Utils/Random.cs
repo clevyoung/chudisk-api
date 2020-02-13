@@ -23,7 +23,7 @@ namespace WebDiskApplication.Areas.WebDisk.Manage.Utils
 
             for (int i = 1; i <= length; i++)
             {
-                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))); //이게 무슨 의미일까?
+                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))); 
                 builder.Append(ch);
             }
 
@@ -51,7 +51,7 @@ namespace WebDiskApplication.Areas.WebDisk.Manage.Utils
                 for (j = 48; j <= 122; j++)
                 {
                     rnum = random.Next(48, 123); //48과 122사이의 랜덤 숫자 추출
-                    if (rnum >= 48 && rnum <= 122 && rnum != 92 &&(rnum <= 57 || rnum >= 65) && (rnum >= 97 || rnum <= 122))
+                    if ((rnum >= 48 && rnum <= 57) || (rnum >= 65 && rnum <= 90) || (rnum >= 97 && rnum <= 122))
                     {
                         //조건을 만족하는 숫자가 나오면 가장 가까운 반복문 탈출
                         break;
