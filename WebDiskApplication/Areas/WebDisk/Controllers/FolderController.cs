@@ -15,12 +15,18 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 {
     public class FolderController : ApiController
     {
+        /// <summary>
+        /// 해당 폴더에 있는 하위 폴더와 파일 가져오기 
+        /// </summary>
+        /// <param name="folderId">해당 폴더 아이디</param>
+        /// <returns></returns>
         [Route("api/disk/folder/{folderId}")]
         [HttpGet]
         public IHttpActionResult GetDisk(string folderId)
         {
             List<FolderManage> folderList = null;
             List<FileManage> fileList = null;
+
             Disk disk = new Disk();
             Folder folder = new Folder();
             using (var db = new WebDiskDBEntities())
@@ -39,19 +45,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             return Ok(disk);
         }
 
-        //[Route("api/disk/folderInfo/{folderId}")]
-        //[HttpGet]
-        //public IHttpActionResult GetFolderInfo(string folderId)
-        //{
-        //    FolderManage currentFolderInfo = null;
-        //    using (var db = new WebDiskDBEntities())
-        //    {
-        //        currentFolderInfo = db.FolderManage.Where(x => x.FolderId == folderId).SingleOrDefault();
-        //    }
-        //    return Ok(currentFolderInfo);
 
-        //}
-        //폴더 생성
+        /// <summary>
+        /// 폴더 생성하기 
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <returns></returns>
         [Route("api/disk/folder")]
         [HttpPost]
         public IHttpActionResult CreateFolder(FolderManage folder)
@@ -59,15 +58,14 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             FolderManage newFolder = new FolderManage();
             using (var db = new WebDiskDBEntities())
             {
-                HttpContext context = HttpContext.Current;
-                newFolder.FolderId = GenerateUniqueID.FolderID();
+                newFolder.FolderId = GenerateUniqueID.FolderID(); //고유 폴더 아이디 생성하기
                 string folderName = folder.FolderName;
                 string parentId = folder.ParentId;
                 newFolder.ParentId = parentId;
-                newFolder.Type = "folder";
+                newFolder.Type = Enum.GetName(typeof(Manage.Enums.ContentType), Manage.Enums.ContentType.Folder).ToLower();
                 var parentFolder = db.FolderManage.Where(x => x.FolderId == parentId).SingleOrDefault();
                 newFolder.ServerPath = @"C:\WebDisk";
-                
+
                 newFolder.RealPath = Path.Combine(parentFolder.RealPath, folderName);
                 newFolder.CreatedDate = DateTime.Now;
                 newFolder.LastAccessed = DateTime.Now;
@@ -75,12 +73,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                 newFolder.FolderName = folderName;
                 newFolder.Starred = false;
                 newFolder.Trashed = false;
-                newFolder.OwnerId = "kg93s4";
+                newFolder.OwnerId = "kg93s4"; //임시 사용자 아이디
 
-                string fullpath = Path.Combine(newFolder.ServerPath, newFolder.OwnerId, newFolder.RealPath);
-                if (!Directory.Exists(fullpath))
+                string folderFullpath = Path.Combine(newFolder.ServerPath, newFolder.OwnerId, newFolder.RealPath);
+                if (!Directory.Exists(folderFullpath))
                 {
-                    Directory.CreateDirectory(fullpath);
+                    Directory.CreateDirectory(folderFullpath);
 
                 }
 
@@ -90,7 +88,10 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             return Ok(newFolder);
         }
 
-        //폴더 탐색
+        /// <summary>
+        /// 폴더 트리 가져오기
+        /// </summary>
+        /// <returns></returns>
         [Route("api/disk/folderTreePath")]
         [HttpGet]
         public IHttpActionResult GetFolderTreePath()
@@ -104,81 +105,54 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
                 folderTree.FolderId = rootFolder.FolderId;
                 folderTree.FolderName = rootFolder.FolderName;
-                folderTree.Subfoldercnt = db.FolderManage.Where(x => x.ParentId == rootFolder.FolderId &&x.Trashed == false).Count();
+                folderTree.Subfoldercnt = db.FolderManage.Where(x => x.ParentId == rootFolder.FolderId && x.Trashed == false).Count();
                 folderTree.Path = rootFolder.RealPath;
-                folderTree.children = GetFolderTree(rootFolder.FolderId);
+                folderTree.children = GetFolderTree(rootFolder.FolderId); //GetFolderTree 재귀 메서드 호출
             }
 
             return Ok(folderTree);
 
         }
 
+        /// <summary>
+        /// 중첩된 폴더 트리 구조를 만드는 재귀 메소드
+        /// </summary>
+        /// <param name="folderId">해당 폴더 아이디</param>
+        /// <returns></returns>
         public List<FolderTree> GetFolderTree(string folderId)
         {
             List<FolderTree> folderTreeList = new List<FolderTree>();
             using (var db = new WebDiskDBEntities())
             {
                 List<FolderManage> subFolders = db.FolderManage.Where(x => x.ParentId == folderId && x.Trashed == false).ToList();
-                
-                //[질문]subFolders가 null이 아니고 count가 0보다 크다는 것을 체크?
-                foreach(var subFolder in subFolders)
-                {
-                    FolderTree folderTree = new FolderTree();
-                    folderTree.FolderId = subFolder.FolderId;
-                    folderTree.FolderName = subFolder.FolderName;
-                    folderTree.Path = subFolder.RealPath;
-                    folderTree.Subfoldercnt = db.FolderManage.Where(x => x.ParentId == subFolder.FolderId).Count();
-                    folderTree.children = GetFolderTree(subFolder.FolderId);
-                    folderTreeList.Add(folderTree);
 
+                if (subFolders.Count > 0)
+                {
+                    foreach (var subFolder in subFolders)
+                    {
+                        FolderTree folderTree = new FolderTree()
+                        {
+                            FolderId = subFolder.FolderId,
+                            FolderName = subFolder.RealPath,
+                            Path = subFolder.RealPath,
+                            Subfoldercnt = db.FolderManage.Where(x => x.ParentId == subFolder.FolderId).Count(),
+                            children = GetFolderTree(subFolder.FolderId)
+                        };
+
+                        folderTreeList.Add(folderTree);
+
+                    }
                 }
 
-                
             }
 
             return folderTreeList;
         }
 
-        //폴더 탐색
-        //[Route("api/disk/folderTreePath/{folderId}")]
-        //[HttpGet]
-        //public IHttpActionResult GetFolderTreePath(string folderId)
-        //{
-        //    FolderTree folderTree = new FolderTree();
-
-        //    using (var db = new WebDiskDBEntities())
-        //    {
-        //        List<FolderPath> folderPathList = new List<FolderPath>();
-
-        //        //서브 폴더
-        //        List<FolderManage> subFolders = db.FolderManage.Where(x => x.ParentId == folderId && x.Trashed == false).ToList();
-
-        //        foreach (var subForder in subFolders)
-        //        {
-        //            FolderPath subFolderPath = new FolderPath()
-        //            {
-        //                Path = subForder.RealPath,
-        //                FolderId = subForder.FolderId,
-        //                FolderName = subForder.FolderName,
-        //                OwnerId = subForder.OwnerId,
-        //                Subfoldercnt = db.FolderManage.Where(x => x.ParentId == subForder.FolderId).Count()
-        //            };
-
-        //            folderPathList.Add(subFolderPath);
-
-        //        }
-
-        //        folderTree.FolderPath = folderPathList;
-        //    }
-
-        //    return Ok(folderTree);
-
-        //}
-
         /// <summary>
-        /// 
+        /// 폴더의 path를 보여주는 메소드
         /// </summary>
-        /// <param name="folderId"></param>
+        /// <param name="folderId">해당 폴더의 아이디</param>
         /// <returns></returns>
         [Route("api/disk/folderPath/{folderId}")]
         [HttpGet]
@@ -190,7 +164,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         }
 
         /// <summary>
-        /// 
+        /// 폴더의 path를 생성하는 재귀메소드
         /// </summary>
         /// <param name="folderId"></param>
         /// <param name="routes"></param>
@@ -201,6 +175,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             FolderManage parentFolder = null;
 
             List<FolderInfo> routeList;
+
             if (routes != null)
             {
                 routeList = routes.ToList();
@@ -212,7 +187,6 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
             using (var db = new WebDiskDBEntities())
             {
-
                 currentFolder = db.FolderManage.Where(x => x.FolderId == folderId).SingleOrDefault();
 
                 if (routeList.Count == 0)
@@ -242,7 +216,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         }
 
 
-        //폴더 이름 변경하기
+        /// <summary>
+        /// 폴더의 이름을 변경한다.
+        /// </summary>
+        /// <param name="folderId">변경할 폴더의 아이디</param>
+        /// <param name="newFolderName">새로운 폴더명</param>
+        /// <returns></returns>
         [Route("api/disk/folder/rename/{folderId}")]
         [HttpPut]
         public IHttpActionResult RenameFolder(string folderId, [FromBody]string newFolderName)
@@ -251,18 +230,27 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             using (var db = new WebDiskDBEntities())
             {
                 renamedfolder = db.FolderManage.Where(x => x.FolderId == folderId).SingleOrDefault();
-                //실제 폴더 이름도 변경하기
-                string sourceFolderPath = Path.Combine(renamedfolder.ServerPath, renamedfolder.OwnerId, renamedfolder.RealPath);
-                string parentPath = sourceFolderPath.Substring(0, sourceFolderPath.LastIndexOf('\\'));
-                string targetFolderPath = Path.Combine(parentPath, newFolderName);
+
+
+                string serverPath = renamedfolder.ServerPath; //서버 path
+                string realPath = renamedfolder.RealPath; // 원본 폴더의 realPath
+                string parentPath = realPath.Substring(0, realPath.LastIndexOf('\\')); //부모 폴더의 real path
+                string tarFolderPath = Path.Combine(parentPath, newFolderName); //타겟 폴더의 real path
+
+                string souFolderFullPath = Path.Combine(serverPath, realPath); //원본 폴더의 전체 path
+                string tarFolderFullPath = Path.Combine(serverPath, tarFolderPath); //타겟 폴더의 전체 path
+
 
                 if (renamedfolder != null)
                 {
-                    if (!Directory.Exists(targetFolderPath))
+                    if (!Directory.Exists(tarFolderFullPath))
                     {
-                        Directory.Move(sourceFolderPath, targetFolderPath);
+                        Directory.Move(souFolderFullPath, tarFolderFullPath);
+
+                        //RenameFolderRecursive
+
                         renamedfolder.FolderName = newFolderName;
-                        renamedfolder.RealPath = Path.Combine(parentPath, newFolderName);
+                        renamedfolder.RealPath = tarFolderPath;
                         renamedfolder.LastModified = DateTime.Now;
                         db.SaveChanges();
                     }
@@ -270,8 +258,6 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                     {
                         return Ok(new { msg = "같은 이름의 폴더가 존재합니다." });
                     }
-
-
                 }
                 else
                 {
@@ -283,9 +269,10 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
 
         /// <summary>
-        /// 폴더를 복사 
+        /// 폴더를 복사한다.
         /// </summary>
-        /// <param name="folderId"></param>
+        /// <param name="folderId">해당 폴더 아이디</param>
+        /// <param name="targetFolderId">타겟 폴더 아이디</param>
         /// <returns></returns>
         [Route("api/disk/folder/copy/{folderId}")]
         [HttpPut, HttpPost]
@@ -304,6 +291,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             return Ok(new { msg = "OK" });
         }
 
+        /// <summary>
+        /// 하위 폴더와 파일까지 복사하는 재귀 메소드
+        /// 호출자는 CopyFolder
+        /// </summary>
+        /// <param name="folderId">해당 폴더의 아이디</param>
+        /// <param name="targetFolderId">타겟 폴더 아이디</param>
         public void CopyFolderRecursive(string folderId, string targetFolderId)
         {
             using (var db = new WebDiskDBEntities())
@@ -317,14 +310,14 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
                 if (!Directory.Exists(tarPath))
                 {
-                    Directory.CreateDirectory(tarPath); //희영 > 여행 > 베트남
+                    Directory.CreateDirectory(tarPath);
                 }
 
                 FolderManage copiedFolder = new FolderManage()
                 {
                     FolderId = GenerateUniqueID.FolderID(),
                     FolderName = sourceFolder.FolderName,
-                    Type = "folder",
+                    Type = Enum.GetName(typeof(Manage.Enums.ContentType), Manage.Enums.ContentType.Folder).ToLower(),
                     CreatedDate = DateTime.Now,
                     LastModified = DateTime.Now,
                     LastAccessed = DateTime.Now,
@@ -356,6 +349,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                     {
                         FileId = GenerateUniqueID.FileID(),
                         FileName = subFile.FileName,
+                        Type = Enum.GetName(typeof(Manage.Enums.ContentType), Manage.Enums.ContentType.File).ToLower(),
                         FileExtension = subFile.FileExtension,
                         FileSize = subFile.FileSize,
                         CreatedDate = DateTime.Now,
@@ -388,9 +382,10 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
 
         /// <summary>
-        /// 폴더 이동 메소드
+        /// 폴더를 복사하기
         /// </summary>
-        /// <param name="folderId"></param>
+        /// <param name="folderId">해당 폴더 아이디</param>
+        /// <param name="targetFolderId">타겟 폴더 아이디</param>
         /// <returns></returns>
         [Route("api/disk/folder/move/{folderId}")]
         [HttpPut]
@@ -431,7 +426,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         /// <summary>
         /// 폴더 이동 재귀 메소드 호출자는 MoveFolder
         /// </summary>
-        /// <param name="folderId">이동하려는 폴더의 아이디</param>
+        /// <param name="folderId">해당폴더의 아이디</param>
         /// <param name="targetPath">타겟폴더의 패스 </param>
         public void MoveFolderRecursive(string folderId, string targetPath)
         {
@@ -501,7 +496,10 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             return Ok(starredFolder);
         }
 
-        //중요 폴더 및 파일 가져오기
+        /// <summary>
+        /// 중요 폴더 및 파일 가져오기
+        /// </summary>
+        /// <returns></returns>
         [Route("api/disk/starred")]
         [HttpGet]
         public IHttpActionResult GetStarredDisk()
@@ -522,9 +520,10 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         }
 
         /// <summary>
-        /// 휴지통 상태 처리
+        /// 휴지통 상태처리
         /// </summary>
-        /// <param name="folderId"></param>
+        /// <param name="folderId">해당 폴더 아이디</param>
+        /// <param name="trashed">trashed 토글 상태</param>
         /// <returns></returns>
         [Route("api/disk/folder/trashed/{folderId}")]
         [HttpPut]
@@ -751,6 +750,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                     }
 
                     #endregion
+
                     #region 하위 폴더 삭제하기
                     for (int i = 0; i < subfolders.Count; i++)
                     {
