@@ -14,4 +14,10 @@ namespace WebDiskApplication.Areas.WebDisk.Manage.Enums
         Zip = 31,
         Unknown = 0
     }
+
+    public enum ContentType : byte
+    {
+        Folder,
+        File,
+    }
 }
