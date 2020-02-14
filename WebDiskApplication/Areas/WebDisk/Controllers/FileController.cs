@@ -47,7 +47,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                                 Directory.CreateDirectory(fullPath);
                             }
 
-                            file.SaveAs(Path.Combine(fullPath, fileName)); //v
+                            file.SaveAs(Path.Combine(fullPath, fileName));
 
                             newFile.FileId = GenerateUniqueID.FileID();//고유 파일 아이디 생성 
                             newFile.FolderId = folderId;
@@ -484,6 +484,45 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             }
             return Ok(mimetypeFiles);
         }
+
+        [Route("api/disk/files/search")]
+        [HttpGet]
+        public IHttpActionResult SearchFiles(string q)
+        {
+            List<FileManage> searchResults = null;
+
+            using (var db = new WebDiskDBEntities())
+            {
+                searchResults = db.FileManage.Where(x => x.FileName.Contains(q) && x.Trashed == false).ToList();
+            }
+            return Ok(searchResults);
+        }
+
+
+        /// <summary>
+        /// 페이지별로 검색한 파일 보여주기
+        /// </summary>
+        /// <param name="q"><질의어/param>
+        /// <param name="page">페이지 번호</param>
+        /// <param name="size">한페이지에 보여질 파일 개수</param>
+        /// <returns></returns>
+        //[Route("api/disk/files/search")]
+        //[HttpGet]
+        //public IHttpActionResult SearchFilesForPage(string q, int page = 1, int size = 60)
+        //{
+        //    List<FileManage> searchResults = null;
+            
+        //    //만약 3페이지 일경우 61 ~90 (page-1) * size ~ page * size 
+        //    int min = (page - 1) * size +1;
+        //    int max = page * size;
+
+        //    using (var db = new WebDiskDBEntities())
+        //    {
+        //        searchResults = db.FileManage.Where(x => x.FileName.Contains(q) && x.Trashed == false).OrderByDescending(x => x.CreatedDate).Skip(min).Take(max).ToList();
+        //    }
+        //    return Ok(searchResults);
+        //}
+
 
     }
 }
