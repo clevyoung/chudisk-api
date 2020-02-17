@@ -1,15 +1,16 @@
 ﻿using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 using System.Web;
 using WebDiskApplication.EFDB;
 using WebDiskApplication.Areas.WebDisk.Models;
-using WebDiskApplication.Areas.WebDisk.Manage.Variables;
-using System.IO;
-using System.Net.Http;
-using System.Net;
-using System.Net.Http.Headers;
+using WebDiskApplication.Manage.Variables;
+using WebDiskApplication.Areas.JWT.AuthFilter;
 
 namespace WebDiskApplication.Areas.WebDisk.Controllers
 {
@@ -20,6 +21,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         /// 파일을 업로드한다.
         /// </summary>
         /// <returns></returns>
+        
         [Route("api/disk/file")]
         [HttpPost]
         public IHttpActionResult UploadFile()

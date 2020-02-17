@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 
-namespace WebDiskApplication.Areas.WebDisk.Manage.Utils
+namespace WebDiskApplication.Manage.Utils
 {
     public class RandomUtil
     {

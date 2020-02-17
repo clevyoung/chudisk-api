@@ -26,15 +26,7 @@ namespace WebDiskApplication.Areas.WebDisk.Models
         public int Subfoldercnt { get; set; }
         public List<FolderTree> children { get; set; }
     }
-  
-    //public class FolderPath
-    //{
-    //    public string Path { get; set; }
-    //    public string FolderId { get; set; }
-    //    public string FolderName { get; set; }
-    //    public int Subfoldercnt { get; set; }
-    //    public string OwnerId { get; set; }
-    //}
+
 
     public class FolderInfo
     {

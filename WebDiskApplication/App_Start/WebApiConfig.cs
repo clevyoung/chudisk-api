@@ -7,6 +7,7 @@ using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using WebDiskApplication.Areas.JWT.AuthFilter;
 
 namespace WebDiskApplication
 {
@@ -19,25 +20,17 @@ namespace WebDiskApplication
             config.EnableCors(cors);
             // Web API 경로
             config.MapHttpAttributeRoutes();
-            
-            //config.Routes.MapHttpRoute(
-            //    name: "file",
-            //    routeTemplate: "api/disk/file/{id}",
-            //    defaults: new { controller = "file", id = RouteParameter.Optional }
-            //);
-
-            //config.Routes.MapHttpRoute(
-            //    name: "folder",
-            //    routeTemplate: "api/disk/folder/{id}",
-            //    defaults: new { controller = "folder", id = RouteParameter.Optional }
-            //);
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
-            
+
+            config.Filters.Add(new JwtAuthenticationFilterAttribute());
+
+            config.Filters.Add(new AuthorizeAttribute());
+
 
 
             var formatters = GlobalConfiguration.Configuration.Formatters;

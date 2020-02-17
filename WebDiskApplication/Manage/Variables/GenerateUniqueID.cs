@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using WebDiskApplication.Areas.WebDisk.Manage.Utils;
+using WebDiskApplication.Manage.Utils;
 
-namespace WebDiskApplication.Areas.WebDisk.Manage.Variables
+namespace WebDiskApplication.Manage.Variables
 {
     public class GenerateUniqueID
     {

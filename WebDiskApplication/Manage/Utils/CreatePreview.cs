@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 
-namespace WebDiskApplication.Areas.WebDisk.Manage.Utils
+namespace WebDiskApplication.Manage.Utils
 {
     public class CreatePreview
     {

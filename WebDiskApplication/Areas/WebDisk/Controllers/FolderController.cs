@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.Http;
 using WebDiskApplication.EFDB;
 using WebDiskApplication.Areas.WebDisk.Models;
-using WebDiskApplication.Areas.WebDisk.Manage.Variables;
+using WebDiskApplication.Manage.Variables;
 using System.IO;
 using System.Net.Http;
 using System.Net;

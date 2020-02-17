@@ -61,12 +61,24 @@
       <HintPath>..\packages\JsonPatch.1.0.2\lib\net45\JsonPatch.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.5.6.0\lib\net461\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Logging, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.5.6.0\lib\net461\Microsoft.IdentityModel.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Tokens, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.5.6.0\lib\net461\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    </Reference>
     <Reference Include="Quartz, Version=3.0.7.0, Culture=neutral, PublicKeyToken=f6b8c98a402cc8a4, processorArchitecture=MSIL">
       <HintPath>..\packages\Quartz.3.0.7\lib\net452\Quartz.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.5.6.0\lib\net461\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
@@ -160,12 +172,18 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Areas\JWT\AuthFilter\AddChallengeOnUnauthorizedResult.cs" />
+    <Compile Include="Areas\JWT\AuthFilter\AuthenticationFailureResult.cs" />
+    <Compile Include="Areas\JWT\AuthFilter\JwtAuthenticationFilterAttribute.cs" />
+    <Compile Include="Areas\JWT\Controllers\AccountController.cs" />
+    <Compile Include="Areas\JWT\JWTAreaRegistration.cs" />
     <Compile Include="Areas\WebDisk\Controllers\FileController.cs" />
     <Compile Include="Areas\WebDisk\Controllers\FolderController.cs" />
-    <Compile Include="Areas\WebDisk\Manage\Utils\CreatePreview.cs" />
-    <Compile Include="Areas\WebDisk\Manage\Utils\Random.cs" />
-    <Compile Include="Areas\WebDisk\Manage\Variables\GenerateUniqueID.cs" />
-    <Compile Include="Areas\WebDisk\Manage\Enums\MimeType.cs" />
+    <Compile Include="Manage\Enums\UserRole.cs" />
+    <Compile Include="Manage\Utils\CreatePreview.cs" />
+    <Compile Include="Manage\Utils\Random.cs" />
+    <Compile Include="Manage\Variables\GenerateUniqueID.cs" />
+    <Compile Include="Manage\Enums\MimeType.cs" />
     <Compile Include="Areas\WebDisk\Models\Disk.cs" />
     <Compile Include="Areas\WebDisk\Scheduler\AutoDeleteJob.cs" />
     <Compile Include="Areas\WebDisk\Scheduler\JobScheduler.cs" />
@@ -233,6 +251,7 @@
       <DependentUpon>WebDiskModel.edmx</DependentUpon>
     </Content>
     <Content Include="Areas\WebDisk\Views\web.config" />
+    <Content Include="Areas\JWT\Views\web.config" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
@@ -260,6 +279,8 @@
     <Content Include="Views\Home\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Areas\JWT\Data\" />
+    <Folder Include="Areas\JWT\Views\Shared\" />
     <Folder Include="Areas\WebDisk\Views\Shared\" />
     <Folder Include="Models\" />
   </ItemGroup>

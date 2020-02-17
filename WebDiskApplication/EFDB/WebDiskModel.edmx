@@ -11,7 +11,7 @@
           </Key>
           <Property Name="FileId" Type="char" MaxLength="10" Nullable="false" />
           <Property Name="FolderId" Type="char" MaxLength="10" />
-          <Property Name="Type" Type="varchar" MaxLength="20" />
+          <Property Name="Type" Type="varchar" MaxLength="10" />
           <Property Name="ServerPath" Type="nvarchar" MaxLength="255" />
           <Property Name="RealPath" Type="nvarchar" MaxLength="255" />
           <Property Name="CreatedDate" Type="datetime" />
@@ -72,7 +72,7 @@
           </Key>
           <Property Name="FileId" Type="String" Nullable="false" MaxLength="10" FixedLength="true" Unicode="false" />
           <Property Name="FolderId" Type="String" MaxLength="10" FixedLength="true" Unicode="false" />
-          <Property Name="Type" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Type" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
           <Property Name="ServerPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <Property Name="RealPath" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <Property Name="CreatedDate" Type="DateTime" Precision="3" />
