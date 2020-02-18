@@ -17,9 +17,7 @@ namespace WebDiskApplication.Areas.WebDisk.Scheduler
             var client = new HttpClient();
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Accept.Clear();
-        //    client.DefaultRequestHeaders.Accept.Add(
-        //new MediaTypeWithQualityHeaderValue("application/json"));
-            await client.GetAsync("api/disk/autoDelete");
+            await client.DeleteAsync("api/disk/folder/autoDelete");
 
         }
     }
