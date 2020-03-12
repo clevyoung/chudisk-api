@@ -15,7 +15,7 @@ namespace WebDiskApplication.Manage.Utils
         {
             string IS_Ext = System.IO.Path.GetExtension(IsPath);
 
-            if (IS_Ext.Contains("jpg") || IS_Ext.Contains("png") || IS_Ext.Contains("gif") || IS_Ext.Contains("bmp"))
+            if (IS_Ext.Contains("jpg") || IS_Ext.Contains("png") || IS_Ext.Contains("gif") || IS_Ext.Contains("jpeg") || IS_Ext.Contains("bmp"))
             {
                 return CreateThumbnail(IsPath, FileID);
             }
@@ -36,7 +36,7 @@ namespace WebDiskApplication.Manage.Utils
             byte[] photoBytes = File.ReadAllBytes(IsPath); // change imagePath with a valid image path
             // Format is automatically detected though can be changed.
             ISupportedImageFormat format = new JpegFormat { Quality = 70 };
-            Size size = new Size(150, 0);
+            Size size = new Size(500, 0);
             using (MemoryStream inStream = new MemoryStream(photoBytes))
             {
                 using (MemoryStream outStream = new MemoryStream())

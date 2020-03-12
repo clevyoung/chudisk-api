@@ -14,8 +14,8 @@ namespace WebDiskApplication.Areas.WebDisk.Models
 
     public class Folder
     {
-        public List<FolderManage> Folders { get; set; }
-        public List<FileManage> Files { get; set; }
+        public List<FolderManage> subFolders { get; set; }
+        public List<FileManage> subFiles { get; set; }
     }
 
     public class FolderTree

@@ -21,27 +21,28 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         /// 파일을 업로드한다.
         /// </summary>
         /// <returns></returns>
-        
         [Route("api/disk/file")]
         [HttpPost]
         public IHttpActionResult UploadFile()
         {
+            string userId = HttpContext.Current.User.Identity.Name; //Header에 포함되어 있는 정보
             using (var db = new WebDiskDBEntities())
             {
                 if (HttpContext.Current.Request.Files.Count > 0) //파일개수가 0이상이면 
                 {
                     HttpFileCollection files = HttpContext.Current.Request.Files;
+
+                    #region 파일 등록하기 
                     for (int i = 0; i < files.Count; i++)
                     {
                         var newFile = new FileManage();
                         HttpPostedFile file = files[i];
                         if (file.ContentLength > 0)//업로드한 파일의 크기를 가져옴 
                         {
-                            string folderId = HttpContext.Current.Request.Form["folderId"]; 
+                            string folderId = HttpContext.Current.Request.Form["folderId"];
                             var parentFolder = db.FolderManage.Where(x => x.FolderId == folderId).SingleOrDefault();
                             string fileName = Path.GetFileName(file.FileName);
                             string serverPath = @"C:\WebDisk";
-                            string userId = "kg93s4"; //임시 사용자 아이디
                             string realPath = parentFolder.RealPath;
                             string fullPath = Path.Combine(serverPath, userId, realPath);
                             if (!Directory.Exists(fullPath))
@@ -62,7 +63,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                             newFile.OwnerId = userId;
                             newFile.FileName = Path.GetFileNameWithoutExtension(file.FileName);
                             newFile.FileExtension = Path.GetExtension(file.FileName).TrimStart('.'); //확장자 앞에 있는 '.'제거
-                            newFile.FileSize = file.ContentLength;
+                            newFile.FileSize = (file.ContentLength / 1024); //kb단위로 저장
                             newFile.RealPath = realPath;
                             newFile.ServerPath = serverPath;
 
@@ -102,11 +103,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                             }
                             else
                             {
-                                
+
                             }
                             #endregion
                         }
                     }
+                    #endregion
                 }
             }
             return Ok();
@@ -122,10 +124,11 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         [HttpPut]
         public IHttpActionResult ChangeTrashedStatus(string fileId, [FromBody] bool trashed)
         {
+            string userId = HttpContext.Current.User.Identity.Name;
             FileManage file = null;
             using (var db = new WebDiskDBEntities())
             {
-                file = db.FileManage.Where(x => x.FileId == fileId).SingleOrDefault();
+                file = db.FileManage.Where(x => x.FileId == fileId && x.OwnerId == userId).SingleOrDefault();
 
                 if (file != null)
                 {
@@ -133,11 +136,10 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                     if (file.Starred == true) file.Starred = false;  //만약 삭제된 파일이 중요처리가 되어 있다면 false처리
                     file.LastModified = DateTime.Now;
                     db.SaveChanges();
-
                 }
                 else
                 {
-                    return Ok(new { msg = "No corresponding items exist." });
+                    return NotFound();
                 }
 
             }
@@ -154,13 +156,16 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         [HttpDelete]
         public IHttpActionResult DeleteFileForever(string fileId)
         {
+            string userId = HttpContext.Current.User.Identity.Name;
             FileManage deletedFile = null;
             using (var db = new WebDiskDBEntities())
             {
-                deletedFile = db.FileManage.Where(x => x.Trashed == true && x.FileId == fileId).SingleOrDefault();
+                deletedFile = db.FileManage.Where(x => x.OwnerId == userId && x.Trashed == true && x.FileId == fileId).SingleOrDefault();
 
                 string fileName = deletedFile.FileName + '.' + deletedFile.FileExtension;
                 string fileFullPath = Path.Combine(deletedFile.ServerPath, deletedFile.OwnerId, deletedFile.RealPath, fileName);
+
+
 
                 if (deletedFile != null)
                 {
@@ -175,7 +180,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                 }
                 else
                 {
-                    return Ok(new { msg = "No corresponding items exist" });
+                    return NotFound();
                 }
 
             }
@@ -192,10 +197,11 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         [HttpPut]
         public IHttpActionResult RenameFile(string fileId, [FromBody]string newFileName)
         {
+            string userId = HttpContext.Current.User.Identity.Name;
             FileManage renamedFile = null;
             using (var db = new WebDiskDBEntities())
             {
-                renamedFile = db.FileManage.Where(x => x.FileId == fileId).SingleOrDefault();
+                renamedFile = db.FileManage.Where(x => x.OwnerId == userId && x.FileId == fileId).SingleOrDefault();
 
                 //실제 파일 이름도 변경하기
                 string folderPath = Path.Combine(renamedFile.ServerPath, renamedFile.OwnerId, renamedFile.RealPath);
@@ -209,7 +215,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                     {
                         File.Move(sourceFilePath, targetFilePath);
                     }
-                    
+
                     renamedFile.FileName = newFileName;
                     renamedFile.LastModified = DateTime.Now;
                     db.SaveChanges();
@@ -217,7 +223,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                 }
                 else
                 {
-                    return Ok(new { msg = "No corresponding items exist." });
+                    return NotFound();
                 }
 
 
@@ -244,10 +250,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         [HttpPut]
         public IHttpActionResult MoveFileToStarred(string fileId, [FromBody] bool starred)
         {
+            string userId = HttpContext.Current.User.Identity.Name;
             FileManage currentFile = null;
             using (var db = new WebDiskDBEntities())
             {
                 currentFile = db.FileManage.Where(x => x.FileId == fileId).SingleOrDefault();
+                
 
                 if (currentFile != null)
                 {
@@ -257,7 +265,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                 }
                 else
                 {
-                    return Ok(new { msg = "No corresponding items exist." });
+                    return NotFound();
                 }
 
             }
@@ -276,9 +284,11 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         public IHttpActionResult MoveFileToTargetFolder(string fileId, [FromBody] string targetFolderId)
         {
             FileManage sourceFile = null;
+            string userId = HttpContext.Current.User.Identity.Name;
             using (var db = new WebDiskDBEntities())
             {
                 sourceFile = db.FileManage.Where(x => x.FileId == fileId).SingleOrDefault();
+                
 
                 if (sourceFile != null)
                 {
@@ -299,11 +309,11 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                         else
                         {
                             File.Move(sourceFilePath, targetFilePath); //만약에 타겟폴더에 해당 파일이 없으면 이동시킨다.
-                            
+
                         }
 
                         //DB에 저장하기
-                        sourceFile.FolderId = targetFolderId; 
+                        sourceFile.FolderId = targetFolderId;
                         sourceFile.RealPath = targetFolder.RealPath;
                         db.SaveChanges();
                     }
@@ -311,7 +321,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                 }
                 else
                 {
-                    return Ok(new { msg = "No corresponding items exist." });
+                    return NotFound();
                 }
             }
             return Ok(sourceFile);
@@ -367,11 +377,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         [HttpGet]
         public IHttpActionResult GetRecentFiles()
         {
+            string userId = HttpContext.Current.User.Identity.Name;
             RecentFiles recentFiles = new RecentFiles();
             using (var db = new WebDiskDBEntities())
             {
 
-                List<FileManage> allFilesThisYear = db.FileManage.Where(x => (x.LastModified.Value.Year == DateTime.Now.Year || x.LastAccessed.Value.Year == DateTime.Now.Year) && x.Trashed == false).ToList();
+                List<FileManage> allFilesThisYear = db.FileManage.Where(x => (x.LastModified.Value.Year == DateTime.Now.Year || x.LastAccessed.Value.Year == DateTime.Now.Year) && x.Trashed == false && x.OwnerId == userId).ToList();
                 List<FileManage> todayFiles = new List<FileManage>();
                 List<FileManage> lastSevenDaysFiles = new List<FileManage>();
                 List<FileManage> lastThirtyDaysFiles = new List<FileManage>();
@@ -466,11 +477,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         [HttpGet]
         public IHttpActionResult GetRecentFiles(string mimeType)
         {
+            string userId = HttpContext.Current.User.Identity.Name;
             byte RR_MimeType = (byte)Manage.Variables.GenerateUniqueID.MyFilesMimeType(mimeType);
             List<FileManage> mimetypeFiles = null;
             using (var db = new WebDiskDBEntities())
             {
-                mimetypeFiles = db.FileManage.Where(x => x.MimeType == RR_MimeType).ToList();
+                mimetypeFiles = db.FileManage.Where(x => x.MimeType == RR_MimeType && x.OwnerId == userId).ToList();
 
                 #region 만약 MimeType 을 사용하지않고, 직접 FileExtention 으로 검색 조건을 지정할 시 코드의 예제
                 if (false)
@@ -491,11 +503,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         [HttpGet]
         public IHttpActionResult SearchFiles(string q)
         {
+            string userId = HttpContext.Current.User.Identity.Name;
             List<FileManage> searchResults = null;
 
             using (var db = new WebDiskDBEntities())
             {
-                searchResults = db.FileManage.Where(x => x.FileName.Contains(q) && x.Trashed == false).ToList();
+                searchResults = db.FileManage.Where(x => x.FileName.Contains(q) && x.Trashed == false && x.OwnerId == userId).ToList();
             }
             return Ok(searchResults);
         }
@@ -513,7 +526,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         //public IHttpActionResult SearchFilesForPage(string q, int page = 1, int size = 60)
         //{
         //    List<FileManage> searchResults = null;
-            
+
         //    //만약 3페이지 일경우 61 ~90 (page-1) * size ~ page * size 
         //    int min = (page - 1) * size +1;
         //    int max = page * size;

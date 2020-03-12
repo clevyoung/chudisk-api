@@ -32,8 +32,8 @@ namespace JWTAuthentication.Areas.Jwt.Controllers
                 if (user != null)
                 {
                     string userRole = Enum.GetName(typeof(WebDiskApplication.Manage.Enums.UserRole), user.UserRole);
-                    string token = createToken(users.Email, userRole);
-                    return Ok<string>(token);
+                    string accessToken = createToken(user.UserId, userRole);
+                    return Ok(new { accessToken = accessToken });
                 }
                 else
                 {
@@ -48,11 +48,11 @@ namespace JWTAuthentication.Areas.Jwt.Controllers
         /// <param name="userEmail">유저 이메일</param>
         /// <param name="userrole">유저 역할</param>
         /// <returns></returns>
-        private string createToken(string userEmail, string userRole)
+        private string createToken(string userId, string userRole)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userEmail),
+                new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(ClaimTypes.Role, userRole)
             };
 
@@ -68,7 +68,7 @@ namespace JWTAuthentication.Areas.Jwt.Controllers
                 Subject = new ClaimsIdentity(claims, "Bearer"),
                 SigningCredentials = signingCredentials,
                 NotBefore = DateTime.UtcNow.AddMinutes(-1),
-                Expires = DateTime.UtcNow.AddHours(12)
+                Expires = DateTime.UtcNow.AddYears(1)
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

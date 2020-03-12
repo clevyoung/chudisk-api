@@ -20,29 +20,50 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         /// </summary>
         /// <param name="folderId">해당 폴더 아이디</param>
         /// <returns></returns>
-        [Route("api/disk/folder/{folderId}")]
+        [AllowAnonymous]
+        [Route("api/disk/folder/{folderId?}")]
         [HttpGet]
-        public IHttpActionResult GetDisk(string folderId)
+        public IHttpActionResult GetDisk(string folderId = null)
         {
-            List<FolderManage> folderList = null;
-            List<FileManage> fileList = null;
-
+            string currentUserId = HttpContext.Current.User.Identity.Name;
             Disk disk = new Disk();
             Folder folder = new Folder();
+
+            List<FolderManage> subFolderList = null;
+            List<FileManage> subFileList = null;
+
             using (var db = new WebDiskDBEntities())
             {
-                folderList = db.FolderManage.Where(x => x.ParentId == folderId && x.Trashed == false).OrderByDescending(o => o.CreatedDate).ToList();
-                fileList = db.FileManage.Where(x => x.FolderId == folderId && x.Trashed == false).OrderByDescending(o => o.CreatedDate).ToList();
-                folder.Folders = folderList;
-                folder.Files = fileList;
+                if (folderId == null)
+                {
+                    subFolderList = db.FolderManage.Where(x => x.OwnerId == currentUserId && x.ParentId == null && x.Trashed == false).OrderByDescending(o => o.CreatedDate).ToList();
+                    subFileList = db.FileManage.Where(x => x.OwnerId == currentUserId && x.FolderId == null && x.Trashed == false).OrderByDescending(o => o.CreatedDate).ToList();
+                }
+                else
+                {
+                    FolderManage currentFolder = db.FolderManage.Where(x => x.OwnerId == currentUserId && x.FolderId == folderId && x.Trashed == false).SingleOrDefault();
+
+                    if (currentFolder != null)
+                    {
+                        subFolderList = db.FolderManage.Where(x => x.OwnerId == currentUserId && x.ParentId == folderId && x.Trashed == false).OrderByDescending(o => o.CreatedDate).ToList();
+                        subFileList = db.FileManage.Where(x => x.OwnerId == currentUserId && x.FolderId == folderId && x.Trashed == false).OrderByDescending(o => o.CreatedDate).ToList();
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
+                }
+
+                folder.subFolders = subFolderList;
+                folder.subFiles = subFileList;
 
                 disk.Folder = folder;
                 disk.FolderId = folderId;
-                disk.Folder.Folders = folderList;
-                disk.Folder.Files = fileList;
+
+                return Ok(disk);
             }
 
-            return Ok(disk);
+
         }
 
 
@@ -51,36 +72,43 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         /// </summary>
         /// <param name="folder"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         [Route("api/disk/folder")]
         [HttpPost]
         public IHttpActionResult CreateFolder(FolderManage folder)
         {
             FolderManage newFolder = new FolderManage();
+            string userId = HttpContext.Current.User.Identity.Name;
             using (var db = new WebDiskDBEntities())
             {
-                newFolder.FolderId = GenerateUniqueID.FolderID(); //고유 폴더 아이디 생성하기
+                
                 string folderName = folder.FolderName;
                 string parentId = folder.ParentId;
+                FolderManage parentFolder = db.FolderManage.Where(x => x.FolderId == parentId).SingleOrDefault();
+                string serverPath = @"C:\WebDisk";
+                string parentRealPath = parentFolder.RealPath;
+                string folderFullpath = Path.Combine(serverPath, "8d7g9s", parentRealPath);
+
+                if (!Directory.Exists(folderFullpath))
+                {
+                    Directory.CreateDirectory(folderFullpath);
+
+                }
+
+                #region 새로운 폴더 생성
+                newFolder.FolderId = GenerateUniqueID.FolderID(); //고유 폴더 아이디 생성
                 newFolder.ParentId = parentId;
                 newFolder.Type = Enum.GetName(typeof(Manage.Enums.ContentType), Manage.Enums.ContentType.Folder).ToLower();
-                var parentFolder = db.FolderManage.Where(x => x.FolderId == parentId).SingleOrDefault();
-                newFolder.ServerPath = @"C:\WebDisk";
-
-                newFolder.RealPath = Path.Combine(parentFolder.RealPath, folderName);
+                newFolder.ServerPath = serverPath;
+                newFolder.RealPath = Path.Combine(parentRealPath, folderName);
                 newFolder.CreatedDate = DateTime.Now;
                 newFolder.LastAccessed = DateTime.Now;
                 newFolder.LastModified = DateTime.Now;
                 newFolder.FolderName = folderName;
                 newFolder.Starred = false;
                 newFolder.Trashed = false;
-                newFolder.OwnerId = "kg93s4"; //임시 사용자 아이디
-
-                string folderFullpath = Path.Combine(newFolder.ServerPath, newFolder.OwnerId, newFolder.RealPath);
-                if (!Directory.Exists(folderFullpath))
-                {
-                    Directory.CreateDirectory(folderFullpath);
-
-                }
+                newFolder.OwnerId = "8d7g9s";
+                #endregion
 
                 db.FolderManage.Add(newFolder);
                 db.SaveChanges();
@@ -133,7 +161,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                         FolderTree folderTree = new FolderTree()
                         {
                             FolderId = subFolder.FolderId,
-                            FolderName = subFolder.RealPath,
+                            FolderName = subFolder.FolderName,
                             Path = subFolder.RealPath,
                             Subfoldercnt = db.FolderManage.Where(x => x.ParentId == subFolder.FolderId).Count(),
                             children = GetFolderTree(subFolder.FolderId)
@@ -227,10 +255,12 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
         public IHttpActionResult RenameFolder(string folderId, [FromBody]string newFolderName)
         {
             FolderManage renamedfolder = null;
+            string userId = HttpContext.Current.User.Identity.Name;
+
             using (var db = new WebDiskDBEntities())
             {
-                renamedfolder = db.FolderManage.Where(x => x.FolderId == folderId).SingleOrDefault();
-
+                
+                renamedfolder = db.FolderManage.Where(x => x.FolderId == folderId && x.OwnerId == userId).SingleOrDefault();
 
                 string serverPath = renamedfolder.ServerPath; //서버 path
                 string realPath = renamedfolder.RealPath; // 원본 폴더의 realPath
@@ -258,10 +288,11 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
                     {
                         return Ok(new { msg = "같은 이름의 폴더가 존재합니다." });
                     }
+
                 }
                 else
                 {
-                    return Ok(new { msg = "No corresponding items exist." });
+                    return NotFound();
                 }
             }
             return Ok(renamedfolder);
@@ -282,8 +313,10 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             {
                 string rootId = db.FolderManage.Where(x => x.ParentId == null).SingleOrDefault().FolderId;
 
+
                 if (folderId != rootId)
                 {
+
                     CopyFolderRecursive(folderId, targetFolderId);
 
                 }
@@ -511,8 +544,8 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             {
                 folderList = db.FolderManage.Where(x => x.Starred == true).OrderByDescending(o => o.CreatedDate).ToList();
                 fileList = db.FileManage.Where(x => x.Starred == true).OrderByDescending(o => o.CreatedDate).ToList();
-                folder.Folders = folderList;
-                folder.Files = fileList;
+                folder.subFolders = folderList;
+                folder.subFiles = fileList;
 
             }
 
@@ -559,10 +592,10 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             Folder trashedDisk = new Folder();
             using (var db = new WebDiskDBEntities())
             {
-                folderList = db.FolderManage.Where(x => x.Trashed == true).OrderByDescending(o => o.CreatedDate).ToList();
-                fileList = db.FileManage.Where(x => x.Trashed == true).OrderByDescending(o => o.CreatedDate).ToList();
-                trashedDisk.Folders = folderList;
-                trashedDisk.Files = fileList;
+                folderList = db.FolderManage.Where(x => x.Trashed == true && x.OwnerId == HttpContext.Current.User.Identity.Name).OrderByDescending(o => o.CreatedDate).ToList();
+                fileList = db.FileManage.Where(x => x.Trashed == true && x.OwnerId == HttpContext.Current.User.Identity.Name).OrderByDescending(o => o.CreatedDate).ToList();
+                trashedDisk.subFolders = folderList;
+                trashedDisk.subFiles = fileList;
 
             }
 
@@ -655,13 +688,13 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
             using (var db = new WebDiskDBEntities())
             {
-                FolderManage folder = db.FolderManage.Where(x => x.FolderId == folderId).SingleOrDefault();
+                FolderManage folder = db.FolderManage.Where(x => x.FolderId == folderId && x.OwnerId == HttpContext.Current.User.Identity.Name).SingleOrDefault();
 
                 string sourcePath = Path.Combine(folder.ServerPath, folder.OwnerId, folder.RealPath);
                 string folderName = folder.FolderName;
 
                 #region 하위 파일 path 추가
-                List<FileManage> subFiles = db.FileManage.Where(x => x.FolderId == folderId).ToList();
+                List<FileManage> subFiles = db.FileManage.Where(x => x.FolderId == folderId && x.OwnerId == HttpContext.Current.User.Identity.Name).ToList();
 
                 foreach (var subFile in subFiles)
                 {
@@ -733,35 +766,41 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
                     #region 하위 파일 삭제
                     //하위 파일
-
-                    for (int i = 0; i < subFiles.Count; i++)
+                    if (subFiles.Count > 0)
                     {
-                        if (subFiles[i] != null)
+                        for (int i = 0; i < subFiles.Count; i++)
                         {
-                            string fileName = subFiles[i].FileName + '.' + subFiles[i].FileExtension;
-                            string filePath = Path.Combine(subFiles[i].ServerPath, subFiles[i].OwnerId, subFiles[i].RealPath, fileName);
-                            if (File.Exists(filePath))
+                            if (subFiles[i] != null)
                             {
-                                File.Delete(filePath);
+                                string fileName = subFiles[i].FileName + '.' + subFiles[i].FileExtension;
+                                string filePath = Path.Combine(subFiles[i].ServerPath, subFiles[i].OwnerId, subFiles[i].RealPath, fileName);
+                                if (File.Exists(filePath))
+                                {
+                                    File.Delete(filePath);
+                                }
+                                db.FileManage.Remove(subFiles[i]);
+                                db.SaveChanges();
                             }
-                            db.FileManage.Remove(subFiles[i]);
-                            db.SaveChanges();
                         }
                     }
 
-                    #endregion
 
-                    #region 하위 폴더 삭제하기
-                    for (int i = 0; i < subfolders.Count; i++)
+                    #endregion
+                    if (subfolders.Count > 0)
                     {
-                        if (subfolders[i] != null)
+                        #region 하위 폴더 삭제하기
+                        for (int i = 0; i < subfolders.Count; i++)
                         {
-                            //재귀함수 호출
-                            DeleteFolder(subfolders[i].FolderId);
+                            if (subfolders[i] != null)
+                            {
+                                //재귀함수 호출
+                                DeleteFolder(subfolders[i].FolderId);
 
+                            }
                         }
+                        #endregion
                     }
-                    #endregion
+
 
                     #region 현재 폴더 삭제하기
                     Directory.Delete(folderPath);
@@ -773,6 +812,7 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
             }
         }
 
+        [AllowAnonymous]
         [Route("api/disk/folder/autoDelete")]
         [HttpDelete]
         public IHttpActionResult DeleteFolderAutoForever()
@@ -785,8 +825,8 @@ namespace WebDiskApplication.Areas.WebDisk.Controllers
 
                 //휴지통에 있는 파일과 폴더 중에서 t상태가 trashed이고 마지막으로 수정한 날짜에서 두달되는 날인 파일과 폴더를 가져온다.
 
-                List<FolderManage> deletedFolders = db.FolderManage.Where(x => x.Trashed == true && x.LastModified.Value.AddMonths(2) == DateTime.Today).ToList();
-                List<FileManage> deletedFiles = db.FileManage.Where(x => x.Trashed == true && x.LastModified.Value.AddMonths(2) == DateTime.Today).ToList();
+                List<FolderManage> deletedFolders = db.FolderManage.Where(x => x.Trashed == true && x.LastModified.Value.Day == DateTime.Now.Day).ToList();
+                //List<FileManage> deletedFiles = db.FileManage.Where(x => x.Trashed == true && x.LastModified.Value.AddMonths(2) == DateTime.Today).ToList();
 
                 //파일이나 폴더를 완전 삭제한다.
                 foreach (var folder in deletedFolders)

@@ -16,7 +16,7 @@ namespace WebDiskApplication
         public static void Register(HttpConfiguration config)
         {
             // Web API 구성 및 서비스
-            var cors = new EnableCorsAttribute("http://localhost:8080", "*", "*");
+            var cors = new EnableCorsAttribute("http://localhost:3000", "*", "*");
             config.EnableCors(cors);
             // Web API 경로
             config.MapHttpAttributeRoutes();
@@ -27,8 +27,8 @@ namespace WebDiskApplication
                 defaults: new { id = RouteParameter.Optional }
             );
 
+            //인증 필터 추가
             config.Filters.Add(new JwtAuthenticationFilterAttribute());
-
             config.Filters.Add(new AuthorizeAttribute());
 
 
